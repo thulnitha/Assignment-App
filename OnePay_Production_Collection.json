@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "OnePay Production Testing",
+    "description": "Complete OnePay integration testing with production Replit URLs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://078809a0-7c28-481a-b436-4116774afcc9-00-2iz5xyaibz04i.spock.replit.dev",
+      "type": "string"
+    },
+    {
+      "key": "payment_reference",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Verify server is running"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Donation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.success && response.paymentUrl) {",
+              "        const reference = response.paymentUrl.split('/').pop();",
+              "        pm.collectionVariables.set('payment_reference', reference);",
+              "        console.log('Payment reference set:', reference);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 2500,\n  \"currency\": \"LKR\",\n  \"message\": \"Production test donation\",\n  \"donorName\": \"Production Test User\",\n  \"donorEmail\": \"production@test.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Create a new donation and get payment URL"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Test Direct Payment Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onepay/direct/{{payment_reference}}",
+          "host": ["{{base_url}}"],
+          "path": ["onepay", "direct", "{{payment_reference}}"]
+        },
+        "description": "Access the enhanced OnePay payment page"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Test Production Payment Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/payment/onepay/{{payment_reference}}",
+          "host": ["{{base_url}}"],
+          "path": ["payment", "onepay", "{{payment_reference}}"]
+        },
+        "description": "Access the production-ready payment page with database integration"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Test Success Callback",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/donation-success?status=success&transaction_id=TEST_PRODUCTION_123",
+          "host": ["{{base_url}}"],
+          "path": ["donation-success"],
+          "query": [
+            {
+              "key": "status",
+              "value": "success"
+            },
+            {
+              "key": "transaction_id",
+              "value": "TEST_PRODUCTION_123"
+            }
+          ]
+        },
+        "description": "Test the success callback URL"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Create Alternative Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1000,\n  \"currency\": \"LKR\",\n  \"gateway\": \"manual\",\n  \"donorName\": \"Alt Payment Test\",\n  \"donorEmail\": \"alt@test.com\",\n  \"message\": \"Alternative payment test\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create-alternative",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create-alternative"]
+        },
+        "description": "Test alternative payment gateway creation"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Get All Donations (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/donations/all",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "all"]
+        },
+        "description": "Retrieve all donations for admin dashboard"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Test Large Amount Donation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 50000,\n  \"currency\": \"LKR\",\n  \"message\": \"Large amount test\",\n  \"donorName\": \"Large Donor\",\n  \"donorEmail\": \"large@donor.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Test system with large donation amount"
+      },
+      "response": []
+    },
+    {
+      "name": "9. Test Small Amount Donation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100,\n  \"currency\": \"LKR\",\n  \"message\": \"Small amount test\",\n  \"donorName\": \"Small Donor\",\n  \"donorEmail\": \"small@donor.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Test system with minimum donation amount"
+      },
+      "response": []
+    },
+    {
+      "name": "10. Test Special Characters",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1500,\n  \"currency\": \"LKR\",\n  \"message\": \"Special character test: äöü & symbols!\",\n  \"donorName\": \"José María (Test)\",\n  \"donorEmail\": \"special.chars+test@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Test system with special characters and symbols"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('Running OnePay Production Tests');"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 302]);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

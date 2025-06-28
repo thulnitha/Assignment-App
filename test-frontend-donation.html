@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frontend Donation Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test-step {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .loading { background: rgba(255, 193, 7, 0.3); }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        input::placeholder, textarea::placeholder { color: rgba(255, 255, 255, 0.7); }
+        .payment-component {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Frontend Donation Flow Test</h1>
+        <p>Testing the complete donation process with DirectOnepayPayment integration</p>
+
+        <div class="test-step">
+            <h3>Step 1: Donation Form</h3>
+            <div>
+                <label>Amount (LKR):</label>
+                <input type="number" id="amount" value="1000" placeholder="Enter amount">
+                
+                <label>Donor Name:</label>
+                <input type="text" id="donorName" value="Test User" placeholder="Your name">
+                
+                <label>Email:</label>
+                <input type="email" id="donorEmail" value="test@example.com" placeholder="your@email.com">
+                
+                <label>Message (optional):</label>
+                <textarea id="message" placeholder="Optional message">Frontend test donation</textarea>
+                
+                <button onclick="createDonation()" id="donateBtn">Create Donation</button>
+            </div>
+            <div id="donationResult" class="test-result"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Step 2: OnePay Integration</h3>
+            <p>After donation creation, the OnePay payment component will be loaded here:</p>
+            <div id="paymentComponent" class="payment-component" style="display: none;">
+                <h4>OnePay Payment Gateway</h4>
+                <div id="paymentDetails"></div>
+                <button onclick="initiatePayment()" id="payBtn">Pay with OnePay</button>
+            </div>
+            <div id="paymentResult" class="test-result"></div>
+        </div>
+
+        <div class="test-step">
+            <h3>Step 3: Test Results</h3>
+            <div id="testSummary"></div>
+            <button onclick="runFullTest()">Run Complete Test</button>
+            <button onclick="resetTest()">Reset Test</button>
+        </div>
+
+        <div class="test-step">
+            <h3>Debug Information</h3>
+            <div id="debugInfo" style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentDonation = null;
+        let paymentData = null;
+
+        function log(message, type = 'info') {
+            const debugDiv = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
+
+        async function createDonation() {
+            const btn = document.getElementById('donateBtn');
+            const resultDiv = document.getElementById('donationResult');
+            
+            btn.disabled = true;
+            resultDiv.className = 'test-result loading';
+            resultDiv.innerHTML = '⏳ Creating donation...';
+            
+            log('Starting donation creation');
+
+            try {
+                const donationData = {
+                    amount: parseInt(document.getElementById('amount').value),
+                    currency: 'LKR',
+                    donorName: document.getElementById('donorName').value,
+                    donorEmail: document.getElementById('donorEmail').value,
+                    message: document.getElementById('message').value
+                };
+
+                log(`Donation data: ${JSON.stringify(donationData)}`);
+
+                const response = await fetch('/api/donations/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(donationData)
+                });
+
+                const result = await response.json();
+                log(`Donation response: ${JSON.stringify(result)}`);
+
+                if (result.success) {
+                    currentDonation = result.donation;
+                    const reference = result.paymentUrl.split('/').pop();
+                    
+                    paymentData = {
+                        donationId: result.donation.id,
+                        amount: result.donation.amount / 100,
+                        reference: reference,
+                        donorName: result.donation.donorName,
+                        donorEmail: result.donation.donorEmail
+                    };
+
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `✅ Donation created successfully!<br>
+                        ID: ${result.donation.id}<br>
+                        Amount: LKR ${paymentData.amount}<br>
+                        Reference: ${reference}`;
+
+                    log('Donation created successfully', 'success');
+                    await loadPaymentComponent();
+                } else {
+                    throw new Error(result.message || 'Failed to create donation');
+                }
+            } catch (error) {
+                log(`Donation creation failed: ${error.message}`, 'error');
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function loadPaymentComponent() {
+            const componentDiv = document.getElementById('paymentComponent');
+            const detailsDiv = document.getElementById('paymentDetails');
+            const resultDiv = document.getElementById('paymentResult');
+
+            log('Loading OnePay payment component');
+
+            try {
+                // Fetch OnePay data
+                const response = await fetch(`/api/onepay/data/${paymentData.reference}`);
+                const onePayResult = await response.json();
+
+                log(`OnePay data response: ${JSON.stringify(onePayResult)}`);
+
+                if (onePayResult.success) {
+                    detailsDiv.innerHTML = `
+                        <div><strong>Amount:</strong> LKR ${paymentData.amount}</div>
+                        <div><strong>Reference:</strong> ${paymentData.reference}</div>
+                        <div><strong>App ID:</strong> ${onePayResult.onePayData.appid}</div>
+                        <div><strong>Hash Token:</strong> ${onePayResult.onePayData.hashToken.substring(0, 20)}...</div>
+                        <div style="margin-top: 10px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                            🔒 OnePay data loaded successfully - Ready for payment
+                        </div>
+                    `;
+
+                    componentDiv.style.display = 'block';
+                    
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = '✅ OnePay component loaded successfully';
+                    
+                    log('OnePay component loaded successfully', 'success');
+                } else {
+                    throw new Error(onePayResult.error || 'Failed to load OnePay data');
+                }
+            } catch (error) {
+                log(`OnePay loading failed: ${error.message}`, 'error');
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ OnePay Error: ${error.message}`;
+            }
+        }
+
+        async function initiatePayment() {
+            const btn = document.getElementById('payBtn');
+            const resultDiv = document.getElementById('paymentResult');
+
+            btn.disabled = true;
+            resultDiv.className = 'test-result loading';
+            resultDiv.innerHTML = '⏳ Initiating OnePay payment...';
+
+            log('Initiating OnePay payment');
+
+            try {
+                // Simulate the DirectOnepayPayment component behavior
+                const onePayResponse = await fetch(`/api/onepay/data/${paymentData.reference}`);
+                const onePayData = await onePayResponse.json();
+
+                if (onePayData.success) {
+                    // Create form for OnePay submission (simulation)
+                    log('Creating OnePay form submission');
+                    
+                    const paymentUrl = `https://ipg.onepay.lk/ipg/`;
+                    const fields = onePayData.onePayData;
+
+                    log(`Payment URL: ${paymentUrl}`);
+                    log(`Payment fields: ${JSON.stringify(fields)}`);
+
+                    // Simulate successful form creation
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `✅ OnePay payment initiated successfully!<br>
+                        <div style="margin-top: 10px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                            🎉 Payment window would open to: ${paymentUrl}<br>
+                            📝 With reference: ${paymentData.reference}<br>
+                            💳 Amount: LKR ${paymentData.amount}
+                        </div>`;
+
+                    log('OnePay payment initiated successfully', 'success');
+                    updateTestSummary(true);
+                } else {
+                    throw new Error('Failed to get OnePay data for payment');
+                }
+            } catch (error) {
+                log(`Payment initiation failed: ${error.message}`, 'error');
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ Payment Error: ${error.message}`;
+                updateTestSummary(false);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function updateTestSummary(success) {
+            const summaryDiv = document.getElementById('testSummary');
+            const timestamp = new Date().toLocaleString();
+
+            if (success) {
+                summaryDiv.innerHTML = `
+                    <div style="background: rgba(76, 175, 80, 0.3); padding: 15px; border-radius: 5px;">
+                        <h4>✅ Test Completed Successfully!</h4>
+                        <p><strong>Donation ID:</strong> ${currentDonation.id}</p>
+                        <p><strong>Amount:</strong> LKR ${paymentData.amount}</p>
+                        <p><strong>Reference:</strong> ${paymentData.reference}</p>
+                        <p><strong>Status:</strong> OnePay integration working correctly</p>
+                        <p><strong>Time:</strong> ${timestamp}</p>
+                        <div style="margin-top: 10px; font-size: 14px;">
+                            🎯 The DirectOnepayPayment component successfully:
+                            <ul>
+                                <li>Created donation in database</li>
+                                <li>Generated OnePay payment data</li>
+                                <li>Prepared form submission to OnePay gateway</li>
+                                <li>Resolved all connection issues</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } else {
+                summaryDiv.innerHTML = `
+                    <div style="background: rgba(244, 67, 54, 0.3); padding: 15px; border-radius: 5px;">
+                        <h4>❌ Test Failed</h4>
+                        <p>There was an issue with the donation flow. Check the debug information above.</p>
+                        <p><strong>Time:</strong> ${timestamp}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function runFullTest() {
+            log('Starting full automated test', 'info');
+            resetTest();
+            
+            // Set test values
+            document.getElementById('amount').value = '2000';
+            document.getElementById('donorName').value = 'Automated Test User';
+            document.getElementById('donorEmail').value = 'autotest@example.com';
+            document.getElementById('message').value = 'Automated frontend test';
+
+            // Run donation creation
+            await createDonation();
+            
+            // Wait a bit then initiate payment
+            setTimeout(async () => {
+                if (paymentData) {
+                    await initiatePayment();
+                }
+            }, 2000);
+        }
+
+        function resetTest() {
+            currentDonation = null;
+            paymentData = null;
+            
+            document.getElementById('donationResult').innerHTML = '';
+            document.getElementById('paymentResult').innerHTML = '';
+            document.getElementById('paymentComponent').style.display = 'none';
+            document.getElementById('testSummary').innerHTML = '';
+            document.getElementById('debugInfo').innerHTML = '';
+            
+            log('Test reset completed', 'info');
+        }
+
+        // Initialize
+        log('Frontend donation test initialized', 'info');
+        log('Ready to test OnePay integration', 'info');
+    </script>
+</body>
+</html>

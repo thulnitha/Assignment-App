@@ -1,0 +1,378 @@
+{
+  "info": {
+    "name": "OnePay Debug Collection",
+    "description": "Comprehensive OnePay testing and debugging collection",
+    "version": "2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Test Donation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1500,\n  \"currency\": \"LKR\",\n  \"message\": \"Postman OnePay debug test\",\n  \"donorName\": \"Postman Test User\",\n  \"donorEmail\": \"postman@debug.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Creates a donation and returns payment URL for OnePay testing"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Test Direct OnePay Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onepay/direct/{{payment_reference}}",
+          "host": ["{{base_url}}"],
+          "path": ["onepay", "direct", "{{payment_reference}}"]
+        },
+        "description": "Access the direct OnePay payment page to test SDK initialization"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Check OnePay SDK Loading",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://storage.googleapis.com/onepayjs/onepayjs.js",
+          "protocol": "https",
+          "host": ["storage", "googleapis", "com"],
+          "path": ["onepayjs", "onepayjs.js"]
+        },
+        "description": "Verify OnePay SDK is accessible and loading correctly"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Test OnePay Direct Submission",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "appid",
+              "value": "26DT119089BDB84D5FF8C",
+              "type": "text"
+            },
+            {
+              "key": "amount",
+              "value": "1500",
+              "type": "text"
+            },
+            {
+              "key": "orderReference",
+              "value": "TEST_{{$timestamp}}",
+              "type": "text"
+            },
+            {
+              "key": "customerFirstName",
+              "value": "Test",
+              "type": "text"
+            },
+            {
+              "key": "customerLastName",
+              "value": "User",
+              "type": "text"
+            },
+            {
+              "key": "customerPhoneNumber",
+              "value": "+94771234567",
+              "type": "text"
+            },
+            {
+              "key": "customerEmail",
+              "value": "test@example.com",
+              "type": "text"
+            },
+            {
+              "key": "transactionRedirectUrl",
+              "value": "{{base_url}}/donation-success",
+              "type": "text"
+            },
+            {
+              "key": "additionalData",
+              "value": "postman_test",
+              "type": "text"
+            },
+            {
+              "key": "hashToken",
+              "value": "{{hash_token}}",
+              "type": "text"
+            },
+            {
+              "key": "apptoken",
+              "value": "{{app_token}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://ipg.onepay.lk/ipg/checkout/",
+          "protocol": "https",
+          "host": ["ipg", "onepay", "lk"],
+          "path": ["ipg", "checkout", ""]
+        },
+        "description": "Test direct form submission to OnePay checkout endpoint"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Verify Payment Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/donations/status/{{payment_reference}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "status", "{{payment_reference}}"]
+        },
+        "description": "Check the status of a donation by reference"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Test OnePay Hash Generation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"appId\": \"26DT119089BDB84D5FF8C\",\n  \"amount\": 1500,\n  \"orderReference\": \"TEST_{{$timestamp}}\",\n  \"appSecret\": \"u74Vb4h3HJkjhgjhg456789VBNMJHGFDS56789MNBVCXZ123456QWERTYUIOPASDFGHJKLZXCVBNM\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onepay/generate-hash",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onepay", "generate-hash"]
+        },
+        "description": "Test hash token generation for OnePay"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Debug OnePay Configuration",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/onepay/debug/config",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onepay", "debug", "config"]
+        },
+        "description": "Get OnePay configuration details for debugging"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Test Alternative OnePay Endpoints",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "merchant_id",
+              "value": "26DT119089BDB84D5FF8C",
+              "type": "text"
+            },
+            {
+              "key": "amount",
+              "value": "1500.00",
+              "type": "text"
+            },
+            {
+              "key": "currency",
+              "value": "LKR",
+              "type": "text"
+            },
+            {
+              "key": "order_id",
+              "value": "TEST_{{$timestamp}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://www.onepay.lk/api/ipg/gateway/request",
+          "protocol": "https",
+          "host": ["www", "onepay", "lk"],
+          "path": ["api", "ipg", "gateway", "request"]
+        },
+        "description": "Test alternative OnePay API endpoint"
+      },
+      "response": []
+    },
+    {
+      "name": "9. Create Multiple Test Donations",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": {{$randomInt}},\n  \"currency\": \"LKR\",\n  \"message\": \"Bulk test donation {{$randomInt}}\",\n  \"donorName\": \"Test User {{$randomInt}}\",\n  \"donorEmail\": \"test{{$randomInt}}@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "create"]
+        },
+        "description": "Create multiple donations for stress testing"
+      },
+      "response": []
+    },
+    {
+      "name": "10. Admin Dashboard Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/donations/all",
+          "host": ["{{base_url}}"],
+          "path": ["api", "donations", "all"]
+        },
+        "description": "Check admin dashboard for all donations"
+      },
+      "response": []
+    },
+    {
+      "name": "11. Test Enhanced Payment Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onepay/direct/{{payment_reference}}",
+          "host": ["{{base_url}}"],
+          "path": ["onepay", "direct", "{{payment_reference}}"]
+        },
+        "description": "Test the enhanced OnePay payment page with robust fallback methods"
+      },
+      "response": []
+    },
+    {
+      "name": "12. Debug OnePay Configuration",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/onepay/debug/config",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onepay", "debug", "config"]
+        },
+        "description": "Get detailed OnePay configuration for debugging"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set base URL if not defined",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:5000');",
+          "}",
+          "",
+          "// Generate test reference if needed",
+          "if (!pm.environment.get('payment_reference')) {",
+          "    pm.environment.set('payment_reference', 'MTH_TEST_' + Date.now());",
+          "}",
+          "",
+          "// Generate hash token for OnePay",
+          "const crypto = require('crypto-js');",
+          "const appId = '26DT119089BDB84D5FF8C';",
+          "const amount = '1500';",
+          "const orderRef = 'TEST_' + Date.now();",
+          "const appSecret = 'u74Vb4h3HJkjhgjhg456789VBNMJHGFDS56789MNBVCXZ123456QWERTYUIOPASDFGHJKLZXCVBNM';",
+          "",
+          "const hashString = appId + amount + orderRef + appSecret;",
+          "const hashToken = crypto.SHA256(hashString).toString(crypto.enc.Hex).toUpperCase();",
+          "",
+          "pm.environment.set('hash_token', hashToken);",
+          "pm.environment.set('app_token', appId + '.' + hashToken.substring(0, 32));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-extract payment reference from donation creation",
+          "if (pm.request.url.path.includes('donations/create') && pm.response.code === 200) {",
+          "    const response = pm.response.json();",
+          "    if (response.paymentUrl) {",
+          "        const reference = response.paymentUrl.split('/').pop();",
+          "        pm.environment.set('payment_reference', reference);",
+          "        console.log('Payment reference extracted:', reference);",
+          "    }",
+          "}",
+          "",
+          "// Log response for debugging",
+          "console.log('Response Status:', pm.response.code);",
+          "console.log('Response Body:', pm.response.text());"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "payment_reference",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "hash_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "app_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

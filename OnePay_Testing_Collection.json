@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "OnePay Testing Collection",
+    "description": "Collection to test OnePay integration and reproduce the 405 error",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Donation (Working)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 500,\n  \"currency\": \"LKR\",\n  \"message\": \"Test donation for OnePay\",\n  \"donorName\": \"Test User\",\n  \"donorEmail\": \"test@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/donations/create",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "donations",
+            "create"
+          ]
+        },
+        "description": "Creates a donation and returns OnePay payment URL - This works"
+      }
+    },
+    {
+      "name": "2. Direct OnePay POST (405 Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "appid",
+              "value": "26DT119089BDB84D5FF8C"
+            },
+            {
+              "key": "hashToken",
+              "value": "GR2P1189D04CD635D8AFD"
+            },
+            {
+              "key": "amount",
+              "value": "100.00"
+            },
+            {
+              "key": "orderReference",
+              "value": "TEST123456"
+            },
+            {
+              "key": "customerFirstName",
+              "value": "Test"
+            },
+            {
+              "key": "customerLastName",
+              "value": "User"
+            },
+            {
+              "key": "customerPhoneNumber",
+              "value": "+94771234567"
+            },
+            {
+              "key": "customerEmail",
+              "value": "test@example.com"
+            },
+            {
+              "key": "transactionRedirectUrl",
+              "value": "https://google.com"
+            },
+            {
+              "key": "additionalData",
+              "value": "test_data"
+            },
+            {
+              "key": "apptoken",
+              "value": "ca00d67bf74d77b01fa26dc6780d7ff9522d8f82d30ff813d4c605f2662cea9ad332054cc66aff68.EYAW1189D04CD635D8B20"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://ipg.onepay.lk/ipg/",
+          "protocol": "https",
+          "host": [
+            "ipg",
+            "onepay",
+            "lk"
+          ],
+          "path": [
+            "ipg",
+            ""
+          ]
+        },
+        "description": "Direct POST to OnePay gateway - This will return 405 Not Allowed error"
+      }
+    },
+    {
+      "name": "3. Get OnePay Payment Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/onepay/data/{{reference}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "onepay",
+            "data",
+            "{{reference}}"
+          ]
+        },
+        "description": "Get OnePay payment data by reference - Use reference from step 1"
+      }
+    },
+    {
+      "name": "4. Get OnePay Payment Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/onepay/payment/{{reference}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "onepay",
+            "payment",
+            "{{reference}}"
+          ]
+        },
+        "description": "Get the OnePay payment page HTML - Use reference from step 1"
+      }
+    },
+    {
+      "name": "5. Check Donation Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/donations/status/{{reference}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "donations",
+            "status",
+            "{{reference}}"
+          ]
+        },
+        "description": "Check donation status by reference - Use reference from step 1"
+      }
+    },
+    {
+      "name": "6. Test Alternative POST Methods",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"appid\": \"26DT119089BDB84D5FF8C\",\n  \"hashToken\": \"GR2P1189D04CD635D8AFD\",\n  \"amount\": 100.00,\n  \"orderReference\": \"TEST123456\",\n  \"customerFirstName\": \"Test\",\n  \"customerLastName\": \"User\",\n  \"customerPhoneNumber\": \"+94771234567\",\n  \"customerEmail\": \"test@example.com\",\n  \"transactionRedirectUrl\": \"https://google.com\",\n  \"additionalData\": \"test_data\",\n  \"apptoken\": \"ca00d67bf74d77b01fa26dc6780d7ff9522d8f82d30ff813d4c605f2662cea9ad332054cc66aff68.EYAW1189D04CD635D8B20\"\n}"
+        },
+        "url": {
+          "raw": "https://ipg.onepay.lk/ipg/",
+          "protocol": "https",
+          "host": [
+            "ipg",
+            "onepay",
+            "lk"
+          ],
+          "path": [
+            "ipg",
+            ""
+          ]
+        },
+        "description": "Try JSON format instead of form data - This will also return 405 error"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "description": "Base URL for your application"
+    },
+    {
+      "key": "reference",
+      "value": "MTH_105_1749811587625",
+      "description": "Payment reference from donation creation"
+    }
+  ],
+  "auth": null,
+  "event": []
+}
